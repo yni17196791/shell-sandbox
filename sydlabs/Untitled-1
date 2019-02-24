@@ -1,0 +1,1 @@
+find . -name "*.ht*" | while read i; do echo "$i"; done
