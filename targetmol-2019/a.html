@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+
+  <link rel="stylesheet" href="/targetmol/css/bootstrap.min.css">
+  <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">-->
+
+  <link href="/targetmol/css/base.css" rel="stylesheet" type="text/css">
+  <link href="/targetmol/css/support.css" rel="stylesheet" type="text/css">
+  <link href="/targetmol/css/product.css" rel="stylesheet" type="text/css" />
+  <link href="/targetmol/css/personal.css" rel="stylesheet" type="text/css" />
+  
+  <link rel="SHORTCUT ICON" href="/targetmol/images/base/targetmol_favicon2.png">
+  
+  
+		<title>Adrenergic  Receptor compound library|Targetmol|96-well</title>
+	
+		<meta name="description" content="Adrenergic Library contains 117 kinds of compounds, which target for adrenergic receptor specifically and are used for drug screening.">
+	
+		<meta name="keywords" content="Adrenergic  Receptor compound library">
+	
+    
+  <meta name="viewport" content="width=device-width">
+  <script type="text/javascript" src="/targetmol/js/jquery-3.2.0.min.js"></script>
+  <script type="text/javascript" src="/targetmol/js/1.js"></script>
+
+  <script type="text/javascript" src="/targetmol/js/echarts.common.min.js"></script>
+  <!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/echarts/4.1.0/echarts.common.min.js"></script>-->
+
+  <script src="/targetmol/js/bootstrap.min.js"></script>
+  <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>-->
+
+  <meta name="csrf-token" content="0FuFU29XN590Ur1MWj2afC6kQGJ9mPm70KYex2bo">
+
+  
+
+
+<script>
+
+  var hintPointer = 0;
+  var hintNo = 0;
+  var searchInput = "";
+
+
+
+  $(document).ready(function(){
+    $("#iptSearch").bind('keydown', function(e) {
+      var code = e.keyCode || e.which;
+      if( (code == 40 || code == 38) && hintNo>0) {
+        e.preventDefault();
+        if(code == 40){
+          if(hintPointer>=hintNo){
+            hintPointer = 1;
+          }else{
+            hintPointer++;
+          }
+        }else if( code == 38){
+          if(hintPointer>0){
+            hintPointer--;
+          }else if( hintPointer == 0 ){
+            hintPointer = hintNo;
+          }
+        }
+
+        if(hintPointer>0){
+          $(".hintList").find("a").css({"color":"#555","font-weight":"normal"});
+          $(".hintList").eq(hintPointer - 1).find("a").css({"color":"#A33","font-weight":"bold"});
+          var newValue = $(".hintList").eq(hintPointer - 1).find("a").html();
+          $("#iptSearch").val(newValue);
+        }else{
+          $(".hintList").find("a").css({"color":"#555","font-weight":"normal"});
+          $("#iptSearch").val(searchInput);
+        }
+
+      }
+    });
+
+    $("#iptSearch").focusout(function(){
+      setTimeout(function(){$("#hintBox").hide()}, 200);
+    });
+
+    $("#iptSearch").focusin(function(){
+      $("#hintBox").show();
+    });
+
+
+
+  });
+
+  function searchKeyUp(str){
+    var code = event.keyCode || event.which;
+    special = [37,38,39,40];
+    special2 = [38,40];
+    if(!(special.indexOf(code) > 0)){
+      searchInput = str;
+      console.log("Hey, there");
+      showHint(str);
+    }
+  }
+
+
+  function getCart(){
+    var urlAjax = "https://www.targetmol.com/apx/getCartAjax";
+    var dataJson = {};
+    $.ajax({
+      type: 'Get',
+      async: true, 
+      url: urlAjax,
+      data: dataJson,
+      success: function (datax) {
+        renewMenuCart(datax);
+      }});
+  }
+
+
+  function renewMenuCart(datax)
+  {
+    var data = datax['items'];
+        var total = datax['total'];
+        var keys = Object.keys(data);
+        var text ="";
+        for( var i = 0; i < keys.length; i++) {
+          key = keys[i];
+          text = text + "<tr><td>" + data[key]['name'] + "</td><td>" + data[key]['options'].package + "</td><td>" + data[key]['qty'] + "</td><td>" + data[key]['price'] + "</td></tr>";
+        }
+        document.getElementById('menu-cart-table-body').innerHTML = text;
+        document.getElementById('menu-cart-total-value').innerHTML = total;
+        if(keys.length < 1){
+          document.getElementById('menu-cart-checkout').setAttribute("disabled","disabled");
+        }else{
+          document.getElementById('menu-cart-checkout').removeAttribute("disabled");
+        }
+  }
+
+  getCart();
+
+
+
+
+
+  function showHint(str) {
+    var searchBox = document.getElementById("searchBox");
+    if (str.length <= 2) {
+      hintNo = 0;
+      if(document.getElementById("hintBox")){
+        var hintBox = document.getElementById("hintBox");
+        searchBox.removeChild(hintBox);
+      }
+    } else {
+      var xmlhttp = new XMLHttpRequest();
+      xmlhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          var hintData = JSON.parse(this.responseText);
+          hintNo = hintData.length;
+          if(document.getElementById("hintBox")){
+            var hintBox = document.getElementById("hintBox");
+            searchBox.removeChild(hintBox);
+          }
+          if( hintData.length > 0){
+            var i;
+            var hintBox = document.createElement("div");
+            for( i = 0; i < hintData.length; i ++){
+              var a = document.createElement("a");
+              var t = document.createTextNode(hintData[i]["name"]);
+              var divx = document.createElement("div");
+
+              hintBox.setAttribute("id", "hintBox");
+              divx.setAttribute("class", "hintList");
+              if(hintData[i]["urid"] == 'protease-inhibitor-cocktail'){
+                a.setAttribute("href", "https://www.targetmol.com/reagent/protease-inhibitor-cocktail");
+              }else{
+                a.setAttribute("href", "https://www.targetmol.com/compound" + "/" + hintData[i]['urid']);
+              }
+              
+              a.appendChild(t);
+              divx.appendChild(a);
+              hintBox.appendChild(divx);
+            }
+            searchBox.appendChild(hintBox);
+          }
+
+        }
+      };
+      xmlhttp.open("GET", "/api/gethint?keyword=" + str, true);
+      xmlhttp.send();
+    }
+  }
+
+</script>
+
+
+<script>
+function sendEmail() 
+{
+	window.location = "mailto:info@targetmol.com";
+}
+</script>
+
+<script type="text/javascript" src="/targetmol/js/d3.min.js"></script>
+
+
+
+
+<!--百度统计-->
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?fee5ba177432e1eba99a4dbcb52089be";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!--  Google Analytics  -->
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-74934737-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+
+<!-- Global site tag (gtag.js) - Google AdWords: 925625628 -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-925625628"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'AW-925625628');
+</script>
+
+
+
+<style type="text/css">
+
+.menu-cart-box{
+  width: 375px;
+  margin: 2px 0 2px 4px;
+}
+
+
+@media  screen and (max-width: 480px){
+
+.menu-cart-box{
+  width: 100%;
+  margin: 2px 0 2px 0px;
+}
+
+}
+
+.menu-cart-table{
+  width: 100%;
+}
+.menu-cart-table th{
+  color:#333;
+}
+
+.menu-cart-table th, .menu-cart-table td{
+  border-bottom: 1px solid #ccc;
+  padding:2px 3px;
+}
+
+.menu-cart-table td:nth-child(3){
+  padding-right: 9px;
+}
+
+.menu-cart-table th:nth-child(3), .menu-cart-table td:nth-child(3){
+  text-align: right;
+}
+
+.menu-cart-table th:nth-child(4), .menu-cart-table td:nth-child(4){
+  text-align: right;
+}
+
+.menu-cart-summary{
+  padding: 6px 3px 2px 3px;
+  display: flex;
+  justify-content:space-between;
+}
+
+.menu-cart-checkout{
+  padding:3px 8px;
+  background: #A33;
+  border-radius: 3px;
+  font-size: 16px;
+  color:white;
+  border:1px solid #833;
+}
+
+.menu-cart-checkout:disabled{
+  background: #eee;
+  border: 1px solid #dadada;
+  color:#999;
+}
+
+.menu-cart-total{
+  font-size: 18px;
+  font-weight: bold;
+  color: #505050;
+}
+
+
+#nemu04::before{
+  content: "";
+  width: 15px;
+  height: 15px;
+  border: 1px solid #ccc;
+  border-bottom-width: 0;
+  border-right-width: 0;
+  -ms-transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+  transform: rotate(45deg);
+  position: absolute;
+  top: -8px;
+  right: 39px;
+  background: #fff;   
+}
+
+
+@media  screen and (max-width: 480px){
+
+#nemu04::before{
+  content: "";
+  width: 0px;
+  height: 0px;
+  border: none;
+ 
+}
+}
+
+
+
+</style>
+
+
+
+</head>
+
+
+
+
+<body>
+
+
+  <div class="head">
+
+    <div class="head_s1">
+      <div class="inner">
+        <div class="logo">
+         <a href="https://www.targetmol.com/index" style="float:left">
+          <span class="onlyDesktop"><img src="/targetmol/images/base/Targetmol_New_Sub.png" style="width:177px;height:60px;"></span>
+          <span class="onlyMobile"><img src="/targetmol/images/base/targetmol_favicon2.png" style="width:38px;"></span>
+         </a>
+       </div>
+       <div class="headright">
+
+        <div id="searchBox" class="search">
+          <form class="form-horizontal" method="Get" autocomplete="off" action="https://www.targetmol.com/search" style="float:right">
+
+            <input value="" id="searchbtn" type="submit" class="btnsos" type class="btnSearch">
+            <input type="text" id="iptSearch" name="keyword" class="txtaa"  spellcheck="false"  onkeyup="searchKeyUp(this.value)" placeholder="Search" required>
+
+          </form>
+        </div>
+
+        <div class="contactbox">
+         <span><img src="/targetmol/images/base/ico13.png"><a href="mailto:sales@targetmol.com"> sales@targetmol.com (US)</a></span>&nbsp;/<span><a href="mailto:info@targetmol.com"> info@targetmol.com</a>&nbsp;&nbsp;&nbsp;&nbsp;Tel: (781) 999-4286 / (781) 999-5354</span>
+       </div>
+     </div>
+   </div>
+ </div>
+ <div class="redline" style="height: 8px; width: 100%;"></div>
+ <div class="head_s2">            
+  <div class="menu">        
+    <ul class="menunav">
+      <li class="on">
+        <a href="https://www.targetmol.com/all-pathways" style="padding-left: 2px;">&nbsp;Inhibitors</a>
+
+        <div class="nemushow" style="display:none;width:480px;">
+          <ul class="topdrop" id="topdrop01"> 
+            <li>Research Area</li>
+                        <li><a href="https://www.targetmol.com/pathway/Angiogenesis">Angiogenesis</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/Apoptosis">Apoptosis</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/Autophagy">Autophagy</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/Cell-Cycle-Checkpoint">Cell Cycle/Checkpoint</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/Chromatin-Epigenetic">Chromatin/Epigenetic</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/Cytoskeletal-Signaling">Cytoskeletal Signaling</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/DNA-Damage-DNA-Repair">DNA Damage/DNA Repair</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/Endocrinology-Hormones">Endocrinology/Hormones</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/Enzyme">Enzyme</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/GPCR-G-Protein">GPCR/G Protein</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/Immunology-Inflammation">Immunology / Inflammation</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/JAK-STAT-signaling">JAK/STAT signaling</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/MAPK">MAPK</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/Membrane-transporter-Ion-channel">Membrane transporter/Ion channel</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/Metabolism">Metabolism</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/Microbiology-virology">Microbiology&amp;virology</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/Neuroscience">Neuroscience</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/NF-%CE%9Ab">NF-Κb</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/Others">Others</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/oxidation-reduction">oxidation-reduction</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/PI3K-Akt-mTOR-signaling">PI3K/Akt/mTOR signaling</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/Proteases-Proteasome">Proteases/Proteasome</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/Stem-Cells">Stem Cells</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/Tyrosine-Kinase-Adaptors">Tyrosine Kinase/Adaptors</a></li>
+                        <li><a href="https://www.targetmol.com/pathway/Ubiquitination">Ubiquitination</a></li>
+                      </ul>
+        </div>
+      </li>
+
+
+      <li class="on"><a href="https://www.targetmol.com/all-compound-libraries">&nbsp;&nbsp;Libraries</a>
+        <div class="nemushow" id="nemu02" style="display:none;">
+          <ul class="topdrop" id="topdrop02">
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L6020">5100 Selectable Natural Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Adrenergic-Library">Adrenergic  Receptor Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Angiogenesis-related-compound-library">Angiogenesis related Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Anti-Cardiovascular-disease-Compound-Library">Anti-Cardiovascular Disease Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Anti-Metabolism-disease-Compound-Library">Anti-Metabolism Disease Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L8200">Anti-aging Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L2160">Anti-cancer Active Compound library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Anti-cancer-approved-drug-library">Anti-cancer Approved drug Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Anti-cancer-clinical-drug-library">Anti-cancer Clinical Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Anti-cancer-Library">Anti-cancer Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L2150">Anti-cancer Drug library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L2130">Anti-cancer Metabolism Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Anti-diabetic-Library">Anti-diabetic Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L6600">Anti-gastroenteritis Natural Product Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Anti-inflammation-Library">Anti-immune Disease Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Anti-infection-Compound-Library">Anti-infection Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L7100">Anti-obesity Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Anti-virus-Compound-Library">Anti-virus Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Antibiotics-Library">Antibiotics Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Antifungal-Compound-Library">Antifungal Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L6700">Antitumor Natural Products Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Apoptosis-Compound-Library">Apoptosis Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Approved-Drugs-Library">Approved Drug Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Autophagy-Library">Autophagy Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Bioactive-Compounds-Library">Bioactive Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Bioactive-Lipid-Library">Bioactive Lipid Inhibitor Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L5900">CNS-Penetrant Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L7200">Calcium Antagonists Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Cardiotoxicity-Compound-Library">Cardiotoxicity Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L8100">Cell cycle related Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L7600">Chemokine inhibitors Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L8300">Chromatin Modification Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Clinical-Compound-Library">Clinical Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L7500">Coagulation and anticoagulation Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Cytokines-inhibitors-Library">Cytokine Inhibitor Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/DNA-Damag-Repair-Library">DNA Damage &amp; Repair Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Endocrinology-Hormones-Library">Endocrinology-Hormones Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Epigenetics-Inhibitor-Library">Epigenetics Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/FDA-approved-Drug-Library">FDA-approved Drug Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Fluorochemical-Library">Fluorochemical Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L6300">Food as Medicine Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Fragment-compounds-library">Fragment Compoud Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/GPCR-Compound-Library">GPCR Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L8400">Hematonosis Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/The-Hematopoietic-Toxicity-Library">Hematopoietic Toxicity Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Histamine-melatonin-Library">Histamine &amp; Melatonin Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L3500">Histone Modification Research Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/The-Human-Endogenous-Ligand-Library">Human Endogenous Metabolite Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Inhibitor-library">Inhibitor Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Ion-Channel-Inhibitor-Library">Ion Channel Inhibitor Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L3700">JAK STAT  Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Killer-collections">Killers Collection</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Kinase-Inhibitor-Library">Kinase Inhibitor Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/MAPK-Inhibitor-Library">MAPK Inhibitor Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L6500">Microbial Natural Product Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Mitochondrial-Targeting-Compound-Library">Mitochondrial Targeting Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L3800">NF-κB Signaling Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L6800">Natural Compoud Library in Chinese Pharmacopoeia</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Natural-Compounds-Library">Natural Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L7700">Neural Regeneration Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/CNS-Library">Neuronal Signaling Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L1510">Nuclear-receptor Inhibitors Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L7900">Osteogenesis-related Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Oxidation-Reduction-Library">Oxidation-Reduction Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/PI3K-Akt-mTOR-Library">PI3K-AKT-mTOR Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L9100">Phosphatase Inhibitor Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Polyphenolic-Natural-compound-Library">Polyphenolic Natural Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L7300">Potassium Channel Blockers Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L3410">Preclinical Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L2140">Promoting Cancer Cell Differentiation Compound Lirary</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Protease-Inhibitor-Library">Protease Inhibitor Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L5800">Selected Impurities Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Selected-plant-sourced-compound-Library">Selected Plant-sourced Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Serotonin-Library">Serotonin Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L7400">Sodium Channel Blockers Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Stem-Cell-Library">Stem cell Differentiation Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L4100">TGF-beta Smad Compound Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L6200">The Yao Nationality Medicine Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/Tyrosine-Kinase-Inhibitor-Library">Tyrosine kinase Inhibitor Library</a></li>
+                        <li><a href="https://www.targetmol.com/compound-library/lby-L4300">Wnt&amp;Hedgehog&amp;Notch Compound Library</a></li>
+                        </ul>
+          </div>
+        </li>
+
+
+
+        <!--<li style="float:right"><a href=#>Order</a></li>-->
+        <li class="on" id="carttab" style="float:right;">
+          <a href="#" style="padding:0 14px" class="mobileBarIcon" brank="04"><img src="/targetmol/images/base/cart2.svg" id="cartIcon" ><span class="onlyDesktop"> Cart</span></a>
+          <div class="nemushow mobileMenu" id="nemu04" style="display:none;">
+            <div class="menu-cart-box">
+              <table class="menu-cart-table">
+                <thead>
+                  <th>Product</th>
+                  <th>Specs</th>
+                  <th>Qty</th>
+                  <th>Price($)</th>
+                </thead>
+                <tbody id="menu-cart-table-body">                  
+                </tbody>
+              </table>
+              <div class="menu-cart-summary">
+                <div class="menu-cart-total">
+                  Total: $ <span id="menu-cart-total-value">2039</span>
+                </div>
+
+                <div class="menu-cart-summary-right">
+                  <form action="https://www.targetmol.com/checkout" method="Get">
+                    <input type="hidden" name="_token" value="0FuFU29XN590Ur1MWj2afC6kQGJ9mPm70KYex2bo">
+                    <button class="menu-cart-checkout" id="menu-cart-checkout">Check Out</button>
+                  </form>      
+                </div>
+
+              </div>
+
+
+            </div>
+          </div>
+
+        </li>
+
+
+
+        <li class="on" style="float:right;">
+
+                    <a href="https://www.targetmol.com/login" class="mobileBarIcon" brank="03"><span class="onlyDesktop">Hello, Sign in</span><span class="onlyMobileInline"><span class="glyphicon glyphicon-user onlyMobileInline"></span></span></a>
+          
+          <div class="nemushow mobileMenu" id="nemu03" style="display:none;">
+                        <div class="signbox">
+              <a href="https://www.targetmol.com/login"  class="onlyMobile">Sign in</a>
+              <a href="https://www.targetmol.com/register">Sign up</a>
+            </div>
+                        <a href="https://www.targetmol.com/account" class="onlyDesktop">Your Account</a>
+            <a href="https://www.targetmol.com/shopping-cart" class="onlyDesktop">Your Cart</a>
+            <a href="https://www.targetmol.com/orders" class="onlyDesktop">Your Orders</a>                
+            <a href="https://www.targetmol.com/address" class="onlyDesktop">Your Addresses</a>
+            <a href="https://www.targetmol.com/payment" class="onlyDesktop">Your Payment Options</a>
+                <!--
+                <a href="https://www.targetmol.com/index">Your Quates</a>
+                <a href="https://www.targetmol.com/index">Your Watchlist</a>            
+                <a href="https://www.targetmol.com/index">Your Special Offers</a>
+                <a href="https://www.targetmol.com/index">Your Recommendations</a>
+              -->
+            </div>
+          </li>
+
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+
+  
+<div class="middle">
+	<div class="quickaddress">
+		<a href="https://www.targetmol.com">Home ></a>      
+		<a href="https://www.targetmol.com/all-compound-libraries"> Screening Libraries ></a>
+		<a href="#"> Adrenergic  Receptor Compound Library</a>
+	</div>
+		<div style="width: 100%; display:block; float: left;margin-bottom:12px;" >
+		<div class="lbytitle">
+			<h1>Adrenergic  Receptor Compound Library</h1>
+			<div>Catalog No. <span style="font-weight: bold;">L2700</span></div>
+		</div>
+
+		<div class="lbydspt">
+				
+		
+						<p>Theadrenergic receptors or ad renoceptors are a class ofG protein-coupled receptorsthat are targets of manycatecholamineslikenorepinephrine(noradrenaline) andepinephrine(adrenaline) produced by the body, modulating cardiovascular , A unique collection of 117 bioactive compounds by TargetMol includes blockers, agonists, endogenous neuron transmitters, and approved drugs, and is an effective tool for screening or identifying recombinant orphan G-protein coupled receptors, new target identification, second screening, and other pharmacological applications.</p>
+				
+
+		</div>
+		<div class="lbyprice">
+			<table>
+				<tr>
+					<th width="210">Pack Size</th>
+					<th>Price</th>
+				</tr>
+
+								<tr>
+					<td>100 μL * 10 mM (in DMSO)
+											</td>
+					<td>USD <span style="width: 80px; display: inline-block;">1938.00</span></td>
+				</tr>
+								<tr>
+					<td>250 μL * 10 mM (in DMSO)
+											</td>
+					<td>USD <span style="width: 80px; display: inline-block;">3239.00</span></td>
+				</tr>
+								<tr>
+					<td>1 mg
+											</td>
+					<td>USD <span style="width: 80px; display: inline-block;">3239.00</span></td>
+				</tr>
+				
+			</table>
+			<div class="lbyPriceBottom">
+				<a class="lbycontact" target="_blank" href="https://www.targetmol.com/contact-us">Contact us to Order</a>
+			</div>
+		</div>
+
+	</div>
+
+
+	<div class="lbydsp">
+		<h3 class="lbysubtitle">Product Description</h3>
+
+		<div style="float:left;width: 100%;">
+
+		<p>
+				
+				</p>
+			<ul style="list-style: disc">
+												<li>A unique collection of 117 bioactive compounds specifically targeting adrenergic receptors, effective tool for screening new drugs or new target identification;</li>
+																<li>Bioactivity and safety confirmed by pre-clinical research and clinical trials;</li>
+																<li>Detailed compound information with structure, target, activity, IC50 value, and biological activity description;</li>
+																<li>Structurally diverse, medicinally active, and cell permeable;</li>
+																<li>NMR and HPLC validated to ensure high purity and quality;</li>
+											</ul>
+
+
+		<p>The compound library can be highly customized. You can select compounds, quantities, format (dry/solid or DMSO), plate map, and concentration to meet your specific requirement. Please check our <a target="_blank" href="/targetmol/files/Compound Library Instructions.pdf" style="color:#333;text-decoration: underline;">Compound Library Instructions</a> for more information. </p>
+		</div>
+
+		<h3 class="lbysubtitle">Packaging and Storage</h3>
+		<div style="float:left;width: 100%;">
+			   <ul>
+				<li>Powder or pre-dissolved DMSO solutions in 96 well plate with optional 2D barcode</li>
+				<li>Shipped with blue ice; Stable for One year as powder, 6 months at - 20 ° C in DMSO or 12months at -80 ° C in DMSO</li>
+			   </ul>
+		
+		</div>
+
+		<h3 class="lbysubtitle" id="lbyCompTitle">Library Composition</h3>
+
+		<div id="echarts" class="onlyDesktop" style="width: 100%;height: 450px; float:left"></div>
+
+		<div id="d3" class="onlyMobile">
+			<div>Most Related Compound Categories</div>
+			<svg id="compx2a" width="100%" height="288" style="display: block;"></svg>
+		</div>
+
+	</div>
+	
+
+
+
+</div>
+
+
+
+
+  <div class="footer">
+    <div id="bottom01" class="redline"></div>
+    <div class="greyback">
+      <div class="inner">
+       <div id="newl01">
+         <a href="Subscribe.html">
+           <div style="float:left"><img src="/targetmol/images/base/icosub.png"></div>
+           <div class="newslsub" style="text-align: center;">Newsletter Subscription</div>
+         </a>
+         <div style="color: #eee; float: left; width: 155px; margin-top: 8px;">
+           Subscribe to receive our lastest product upates and special offers! 
+         </div>
+
+       </div>
+       <div>
+        <ul class="guidlist" id="guidl01">
+         <li>
+           <div>
+            <dl>
+              <dt><span>CORPORATE</span></dt>
+              <dd><a href="https://www.targetmol.com/about-us">About Us</a></dd>               
+              <dd><a href="https://www.targetmol.com/contact-us">Contact Us</a></dd>
+              <dd><a href="https://www.targetmol.com/join-us">Join Us</a></dd>
+              <dd><a href="https://www.targetmol.com/get-w9">Get W-9 Form</a></dd>
+            </dl>            
+          </div>
+        </li>
+        <li>
+          <div>
+           <dl>
+             <dt><span>SUPPORT</span></dt>
+             <dd><a href="https://www.targetmol.com/return-exchange">Returns &amp; Exchange</a></dd>
+             <dd><a href="https://www.targetmol.com/quality-control">Quality Control</a></dd>
+             <dd  style="display: none"><a href="https://www.targetmol.com/sitemap">Sitemap</a></dd>
+             <dd><a href="https://www.targetmol.com/terms">Terms and Conditions</a></dd>
+           </dl>
+         </div>
+       </li>
+       <li>
+         <div>
+           <dl>
+             <dt><span>ORDERING</span></dt>
+             <dd><a href="https://www.targetmol.com/how-to-order">How to Order</a></dd>           
+             <dd><a href="https://www.targetmol.com/catalog">Catalogs</a></dd>
+             <dd><a href="https://www.targetmol.com/custom-compound-library">Custom Library</a></dd>
+             <dd><a href="https://www.targetmol.com/partners">Worldwide Distributors</a></dd>
+           </dl>
+         </div>
+       </li>
+     </ul>
+
+     <ul class="guidlist" id="guidl02">
+      <dd><a href="https://www.targetmol.com/about-us">About Us</a></dd>               
+      <dd><a href="https://www.targetmol.com/contact-us">Contact Us</a></dd>
+      <dd><a href="https://www.targetmol.com/join-us">Join Us</a></dd>
+      <dd><a href="https://www.targetmol.com/get-w9">Get W-9 Form</a></dd>
+      <dd><a href="https://www.targetmol.com/return-exchange">Returns &amp; Exchange</a></dd>
+      <dd><a href="https://www.targetmol.com/quality-control">Quality Control</a></dd>
+      <dd  style="display: none"><a href="https://www.targetmol.com/sitemap">Sitemap</a></dd>
+      <dd><a href="https://www.targetmol.com/terms">Terms and Conditions</a></dd>
+      <dd><a href="https://www.targetmol.com/how-to-order">How to Order</a></dd>           
+      <dd><a href="https://www.targetmol.com/catalog">Catalogs</a></dd>
+      <dd><a href="https://www.targetmol.com/custom-compound-library">Custom Library</a></dd>
+      <dd><a href="https://www.targetmol.com/partners">Worldwide Distributors</a></dd>
+    </ul>
+
+
+
+
+  </div>
+  <div class="shua" style="width:20%">
+   <a href="Index.html"><img src="/targetmol/images/base/Targetmol_New_white.png" style="height: 50px;"></a>
+ </div>
+ <div class="socialicon">
+  <a target="_blank" href="https://www.facebook.com/targetmol"><img src="/targetmol/images/base/iconfb.png"></a>
+  <a target="_blank" href="http://www.linkedin.com/company/targetmol"><img src="/targetmol/images/base/iconin.png"></a>
+  <a target="_blank" href="https://twitter.com/targetmol"><img src="/targetmol/images/base/icontw.png"></a>
+</div>
+<div id="bottom02" style="float: left; width: 330px; border-top: thin #eee solid; margin-top: 3px; padding-top: 3px;">
+  <img src="/targetmol/images/base/grey2.png">
+</div>
+<div class="copyright"> 
+  Copyright © 2015 Target molecule Corp. All rights reserved. All products are for research use only, not for human use.
+</div>
+
+
+
+</div> 
+</div>
+</div>
+
+
+</body>
+
+
+
+<script type="text/javascript">
+
+
+	var myChart = echarts.init(document.getElementById("echarts"));
+
+	var option = {
+		tooltip:{
+			show: true,
+			formatter: "{a} <br/>{b} : {c} ({d}%)"
+		},
+		legend:{
+			data:[]
+		},
+		toolbox:{
+			show:true,
+			feature: {
+				dataView: {
+					show: false,
+				},
+				saveAsImage: {
+					show: false,
+				},
+			},
+		},
+		calculable: true,
+		series:[{
+			name: "Library Composition",
+			type: "pie",
+			radius: [60,150],
+			center: ["50%","50%"],
+			roseType: "area",
+			data: [
+						{
+				value:115,
+				name:"Neuroscience"
+			},
+						{
+				value:114,
+				name:"GPCR/G Protein"
+			},
+						{
+				value:12,
+				name:"Immunology / Inflammation"
+			},
+						{
+				value:7,
+				name:"Membrane transporter/Ion channel"
+			},
+						{
+				value:5,
+				name:"Metabolism"
+			},
+						{
+				value:3,
+				name:"Angiogenesis"
+			},
+						{
+				value:3,
+				name:"Tyrosine Kinase/Adaptors"
+			},
+						{
+				value:2,
+				name:"Others"
+			},
+						{
+				value:2,
+				name:"Cytoskeletal Signaling"
+			},
+						{
+				value:1,
+				name:"Endocrinology/Hormones"
+			},
+						{
+				value:1,
+				name:"Apoptosis"
+			},
+						{
+				value:1,
+				name:"Chromatin/Epigenetic"
+			},
+						{
+				value:1,
+				name:"oxidation-reduction"
+			},
+						{
+				value:1,
+				name:"PI3K/Akt/mTOR signaling"
+			},
+						{
+				value:1,
+				name:"Proteases/Proteasome"
+			},
+						]
+		}]
+	};
+	
+	myChart.setOption(option);
+
+</script>
+
+
+<script type="text/javascript">
+
+
+	var svg = d3.select("#compx2a"),
+	margin = {top: 12, right: 0, bottom: 0, left: 0},
+	width = +svg.attr("width") - margin.left - margin.right,
+	height = +svg.attr("height") - margin.top - margin.bottom - 80;
+
+
+
+	var g = svg.append("g")
+	.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+	var data =[{"pathway":"Neuroscience","number":"115"},{"pathway":"GPCR\/G Protein","number":"114"},{"pathway":"Immunology \/ Inflammation","number":"12"},{"pathway":"Membrane transporter\/Ion channel","number":"7"},{"pathway":"Metabolism","number":"5"},{"pathway":"Angiogenesis","number":"3"},{"pathway":"Tyrosine Kinase\/Adaptors","number":"3"},{"pathway":"Others","number":"2"},{"pathway":"Cytoskeletal Signaling","number":"2"},{"pathway":"Endocrinology\/Hormones","number":"1"},{"pathway":"Apoptosis","number":"1"},{"pathway":"Chromatin\/Epigenetic","number":"1"},{"pathway":"oxidation-reduction","number":"1"},{"pathway":"PI3K\/Akt\/mTOR signaling","number":"1"},{"pathway":"Proteases\/Proteasome","number":"1"}];
+
+	rown = data.length * 35;
+	document.getElementById("compx2a").height = rown + 50;
+	var maxnum = data[0].number
+
+
+	var x = d3.scaleBand().rangeRound([0, rown]).padding(0.4).paddingOuter(0.2);
+	x.domain(data.map(function(d) { return d.pathway; }));
+
+	g.selectAll(".bar")
+	.data(data)
+	.enter().append("circle")
+	.attr("class", "bar")
+	.attr("cy", function(d) { return x(d.pathway) +6; })
+	.attr("cx", 16)
+	.attr("r", 16)
+	.attr("fill-opacity", function(d) { return (d.number/maxnum)*0.65+0.35} )
+
+	g.selectAll(".bartxt2")
+	.data(data)
+	.enter().append("text")
+	.attr("class", "bartxt2")
+	.text(function(d) { return d.number; })
+	.attr("x", 16)
+	.attr("y", function(d) { return x(d.pathway) +10})
+	.style("text-anchor", "middle")
+	.attr("fill","#fff")
+
+	g.selectAll(".barname")
+	.data(data)
+	.enter().append("text")
+	.attr("class", "bartxt")
+	.text(function(d) { return d.pathway; })
+	.attr("x", 40)
+	.attr("y", function(d) { return x(d.pathway) + 10})
+	.style("text-anchor", "left")
+
+
+
+
+</script>
+
+
+
+<script>
+
+if(15 == 0)
+{
+	document.getElementById("d3").style.display ="none";
+	document.getElementById('echarts').style.display ="none";
+	document.getElementById('lbyCompTitle').style.display="none";
+}
+
+
+</script>
+
+
+
+
+
+
+
+</html>
